@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+_parts_*
+_body.html
+_logic.js
+_assemble.py

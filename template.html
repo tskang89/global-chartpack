@@ -1,0 +1,340 @@
+<!doctype html><html lang="ko"><head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>글로벌 차트팩</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --surface-2:#eef1f5;
+  --ink:#101a26; --ink-2:#465264; --muted:#768194; --rule:#dce1e8; --rule-strong:#b9c1cc;
+  --accent:#163f8c; --accent-ink:#ffffff; --accent-soft:#e3eaf7;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --ref:#8a93a1;
+  --up:#0b7a3e; --down:#b4332f;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0e131a; --surface:#151c25; --surface-2:#1c2530;
+    --ink:#edf1f6; --ink-2:#b2bcc9; --muted:#8793a3; --rule:#26303c; --rule-strong:#3a4656;
+    --accent:#8fb0ff; --accent-ink:#0e131a; --accent-soft:#1d2a44;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --ref:#7b8696;
+    --up:#4cc28a; --down:#ef7b76;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0e131a; --surface:#151c25; --surface-2:#1c2530;
+  --ink:#edf1f6; --ink-2:#b2bcc9; --muted:#8793a3; --rule:#26303c; --rule-strong:#3a4656;
+  --accent:#8fb0ff; --accent-ink:#0e131a; --accent-soft:#1d2a44;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --ref:#7b8696;
+  --up:#4cc28a; --down:#ef7b76;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:0 56px}
+header.top{padding-block:28px 18px;display:flex;flex-wrap:wrap;gap:12px 32px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:clamp(24px,3.2vw,32px);line-height:1.2;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.stamp{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:var(--ink-2);text-align:right}
+.stamp b{font-family:var(--mono);font-weight:500;color:var(--ink)}
+.stamp a.calLink{color:var(--accent);text-decoration:none;font-weight:600}
+.stamp a.calLink:hover{text-decoration:underline}
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--rule)}
+.tablist{display:flex;gap:6px;flex-wrap:wrap}
+.tablist.sub{margin-top:8px;padding-top:8px;border-top:1px dashed var(--rule)}
+.tab{flex:0 0 auto;appearance:none;border:1px solid var(--rule-strong);background:var(--surface);color:var(--ink-2);font:inherit;font-weight:500;font-size:14px;padding:8px 16px;border-radius:6px;cursor:pointer;display:flex;gap:8px;align-items:baseline}
+.tab .ko{font-size:12px;color:var(--muted)}
+.tab:hover{border-color:var(--accent);color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tab[aria-selected="true"] .ko{color:var(--accent-ink);opacity:.8}
+.tab:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:620px){
+  .tab{padding:7px 12px;gap:0}
+  .tab .en{display:none}
+  .tab .ko{font-size:14px;color:var(--ink-2)}
+  .tab[aria-selected="true"] .ko{color:var(--accent-ink);opacity:1}
+}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-block:20px 8px}
+.kpi{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .k{font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .v{font-family:var(--mono);font-size:22px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.kpi .v small{font-size:13px;color:var(--muted);margin-left:2px}
+.kpi .p{font-size:11.5px;color:var(--muted);font-family:var(--mono);display:flex;gap:8px;flex-wrap:wrap}
+.d-up{color:var(--up)} .d-down{color:var(--down)} .d-flat{color:var(--muted)}
+section.blk{margin-top:36px}
+.blk-h{display:flex;gap:12px;align-items:baseline;border-top:2px solid var(--ink);padding-top:10px;margin-bottom:14px;flex-wrap:wrap}
+.blk-h .n{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:500}
+.blk-h h2{font-size:18px;margin:0;font-weight:600;text-wrap:balance}
+.blk-h .sub{font-size:12.5px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 16px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.card.wide{grid-column:1/-1}
+.card h3{font-size:14.5px;margin:0;font-weight:600}
+.card .unit{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.ch{position:relative;height:270px}
+.card.wide .ch{height:300px}
+.note{font-size:11.5px;color:var(--muted);margin:2px 0 0;line-height:1.5}
+details{font-size:12px}
+summary{cursor:pointer;color:var(--ink-2);font-size:12px;width:max-content;padding:2px 0}
+.tbl{overflow-x:auto;margin-top:6px;max-height:280px;overflow-y:auto;border:1px solid var(--rule);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:11.5px;font-variant-numeric:tabular-nums}
+th,td{padding:4px 8px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{position:sticky;top:0;background:var(--surface-2);color:var(--ink-2);font-weight:500;font-family:var(--sans)}
+footer.src{margin-top:44px;border-top:1px solid var(--rule);padding-top:16px;font-size:12px;color:var(--ink-2);display:grid;gap:6px;max-width:900px}
+footer.src p{margin:0}
+footer.src b{color:var(--ink);font-weight:600}
+@media (max-width:980px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:720px){.grid{grid-template-columns:1fr}.stamp{text-align:left}.ch{height:240px}.card.wide .ch{height:260px}}
+@media (max-width:420px){.wrap{padding-inline:16px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi .v{font-size:19px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head><body>
+<div class="wrap">
+<header class="top">
+<p class="eyebrow">Bank of Korea Frankfurt</p>
+<h1>글로벌 차트팩</h1>
+<p class="stamp">__STAMP__ · 원자재 · 금리 · 환율·리스크<br>
+<a class="calLink" href="https://tskang89.github.io/euro-chartpack/">주요국 경제 차트팩 →</a><br>
+<a class="calLink" href="https://tskang89.github.io/econ-calendar/">향후 1개월 주요 일정 →</a></p>
+</header>
+__WARN__
+<div id="main"></div>
+<footer>
+<p class="note">__NOTE__</p>
+</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const DATA = __DATA__;
+const M = DATA.meta;
+/* 차트 엔진은 주요국 경제 차트팩과 같은 것을 쓴다(Chart.js + VL 플러그인 +
+   makeChart). 두 쪽의 그림이 달라 보이면 같은 사무소에서 나온 것으로 읽히지
+   않는다. 여기서는 나라 탭이 없고 묶음만 있으므로 그 부분만 새로 썼다. */
+const cst = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const nf = (v,d) => v==null||isNaN(v) ? '–' : (Math.abs(v)<1e-9?0:v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const lastIdx = a => { for(let i=a.length-1;i>=0;i--) if(a[i]!=null) return i; return -1; };
+
+/* 축 이름. 일별은 '25.4.3', 월별은 '25.04'. 일별을 'YY.MM' 으로 두면 같은
+   이름이 줄줄이 붙어 어느 점이 어느 날인지 알 수 없다. */
+const LD = M.days.map(d => d.slice(2,4)+'.'+(+d.slice(5,7))+'.'+(+d.slice(8,10)));
+const LM = M.months.map(m => m.slice(2,4)+'.'+m.slice(5));
+const D = k => DATA[k] || [];
+const has = k => Array.isArray(DATA[k]) && DATA[k].some(v => v!=null);
+
+/* 한 그림. L 은 축 이름, S 는 선 목록. type 은 line 만 쓴다 — 시장 자료는
+   흐름을 보는 것이라 막대가 맞지 않는다. */
+const ch = (t, u, L, dec, S, note) => ({t, u, L, dec, type:'line', S, note});
+const line = (n, k, col) => ({n, d:D(k), col});
+
+function groups(){
+  const g = [];
+
+  const comm = [];
+  if(has('gold'))   comm.push(ch('금','달러/온스',LD,1,[line('금','gold','--s1')],
+    '뉴욕상품거래소 금 선물 종가.'));
+  if(has('silver')) comm.push(ch('은','달러/온스',LD,2,[line('은','silver','--s2')],
+    '뉴욕상품거래소 은 선물 종가.'));
+  if(has('brent')||has('wti')) comm.push(ch('원유 — 브렌트·WTI','달러/배럴',LD,2,
+    [line('브렌트','brent','--s1'),line('WTI','wti','--s2')],
+    '두 유종 모두 일별 선물 종가다. 두바이는 일별 공개 계열이 없어 아래에 월별로 따로 싣는다.'));
+  if(has('dubai'))  comm.push(ch('원유 — 두바이','달러/배럴 · 월별',LM,2,
+    [line('두바이','dubai','--s3')],
+    '한국은행 ECOS 국제상품가격. 월평균이라 위 브렌트·WTI(일별)와 같은 날로 견주면 안 된다.'));
+  if(has('ttf'))    comm.push(ch('천연가스 — 유럽 TTF','유로/MWh',LD,2,
+    [line('TTF','ttf','--s1')],'네덜란드 TTF 선물 종가. 유로지역 가스 가격의 기준이다.'));
+  if(has('hh'))     comm.push(ch('천연가스 — 미국 헨리허브','달러/MMBtu',LD,2,
+    [line('헨리허브','hh','--s2')],'단위가 TTF 와 달라 한 그림에 얹지 않는다.'));
+  if(has('copper')) comm.push(ch('구리','달러/파운드',LD,3,
+    [line('구리','copper','--s3')],'뉴욕상품거래소 구리 선물 종가.'));
+  if(has('gsci'))   comm.push(ch('원자재 종합 — S&P GSCI','지수',LD,1,
+    [line('GSCI','gsci','--s1')],'에너지 비중이 큰 생산량 가중 지수다.'));
+  if(has('fao'))    comm.push(ch('곡물·식량 — FAO 지수','2014–2016=100 · 월별',LM,1,
+    [line('식량가격지수','fao','--s1'),line('곡물','faoCereal','--s2')],
+    'FAO 가 달마다 내는 지수. S&P GSCI 농산물지수는 공개 창구에 과거치가 하루치뿐이라 선을 그릴 수 없어 이것으로 갈음했다.'));
+  if(comm.length) g.push({n:'1', t:'원자재', sub:'일별 · 일부 월별', charts:comm});
+
+  const rate = [];
+  const long10 = [];
+  if(has('ust10')) long10.push(line('미국','ust10','--s1'));
+  if(has('bund10')) long10.push(line('독일','bund10','--s2'));
+  if(has('jgb10')) long10.push(line('일본','jgb10','--s3'));
+  if(long10.length) rate.push(ch('장기금리 — 10년물 국채','%',LD,2,long10,
+    '미국은 Yahoo(^TNX), 독일은 분데스방크 Svensson 수익률곡선, 일본은 재무성 공표치다. 출처가 달라 같은 날 값이 조금씩 다른 기준일 수 있다.'));
+  if(has('sofr')) rate.push(ch('단기금리 — SOFR','%',LD,2,[line('SOFR','sofr','--s1')],
+    '뉴욕 연준이 날마다 내는 담보부 익일물 금리. 달러 자금시장의 기준금리다.'));
+  if(has('eur3m')) rate.push(ch('단기금리 — 유리보','% · 월별',LM,2,
+    [line('1개월','eur1m','--s4'),line('3개월','eur3m','--s1'),
+     line('6개월','eur6m','--s2'),line('12개월','eur12m','--s3')],
+    '유로지역 은행 간 무담보 조달의 기준금리. 유로화 대출·조달 계약은 대개 3개월물을 쓴다. ECB 가 월평균만 공표해 월별이다(산출은 EMMI).'));
+  if(rate.length) g.push({n:'2', t:'금리', sub:'일별 · 유리보는 월별', charts:rate});
+
+  const risk = [];
+  if(has('dxy')) risk.push(ch('달러인덱스','지수',LD,2,[line('DXY','dxy','--s1')],
+    '주요 6개 통화 대비 달러 가치. 유로 비중이 가장 크다.'));
+  if(has('vix')) risk.push(ch('VIX','포인트',LD,2,[line('VIX','vix','--hot')],
+    'S&P 500 옵션에 반영된 향후 30일 변동성. 20을 넘으면 불안이 커진 것으로 본다.'));
+  if(risk.length) g.push({n:'3', t:'환율 · 리스크', sub:'일별', charts:risk});
+
+  return g;
+}
+
+let charts = [];
+function boot(){
+  const main = document.getElementById('main');
+  groups().forEach(sec=>{
+    const s = document.createElement('section');
+    s.className = 'blk'; s.id = 's'+sec.n;
+    s.innerHTML = `<div class="blk-h"><span class="n">${sec.n.padStart(2,'0')}</span>`
+      + `<h2>${sec.t}</h2><span class="sub">${sec.sub}</span></div><div class="grid"></div>`;
+    const g = s.querySelector('.grid');
+    sec.charts.forEach((c,i)=>{
+      const card = document.createElement('article'); card.className = 'card';
+      const id = `g${sec.n}_${i}`;
+      card.innerHTML = `<h3>${c.t}</h3><span class="unit">${c.u}</span>`
+        + `<div class="ch"><canvas id="${id}" role="img" aria-label="${c.t} 차트"></canvas></div>`
+        + (c.note ? `<p class="note">${c.note}</p>` : '');
+      g.appendChild(card);
+      charts.push(makeChart(card.querySelector('canvas'), c));
+    });
+    main.appendChild(s);
+  });
+}
+
+const VL = {
+  id:'vlabels',
+  afterDatasetsDraw(chart, args, opt){
+    const {ctx, chartArea:ca} = chart; const dec = opt.dec; const H = 13;
+    const right = chart.width - 2, top = 2;
+    ctx.save();
+    ctx.font = '500 10.5px "IBM Plex Mono", ui-monospace, Menlo, monospace';
+    ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+    const boxes = [];
+    const hit = r => boxes.some(b => r.x < b.x+b.w && r.x+r.w > b.x && r.y < b.y+b.h && r.y+r.h > b.y);
+    const put = (t, x, y) => { ctx.textAlign='left'; ctx.lineWidth=3; ctx.strokeStyle=opt.halo; ctx.strokeText(t,x,y); ctx.fillStyle=opt.ink; ctx.fillText(t,x,y); };
+    const lastLab = chart.data.labels.length-1;
+    // bars: every value (smaller type when categories are narrow)
+    const catW = ca.width / Math.max(1, chart.data.labels.length);
+    const dense = catW < 14;
+    ctx.font = dense ? '500 8px "IBM Plex Mono", ui-monospace, Menlo, monospace' : '500 10.5px "IBM Plex Mono", ui-monospace, Menlo, monospace';
+    const HB = dense ? 9 : H;
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta = chart.getDatasetMeta(di);
+      if(!chart.isDatasetVisible(di) || ds._ref || meta.type!=='bar') return;
+      meta.data.forEach((el,i)=>{
+        const v = ds.data[i]; if(v==null) return;
+        const t = nf(v,dec), w = ctx.measureText(t).width, neg = v<0;
+        if(chart.options.indexAxis==='y'){
+          let x = neg ? el.x-6-w : el.x+6; if(neg && x < chart.chartArea.left+2) x = el.base+6;
+          put(t, x, el.y); boxes.push({x, y:el.y-H/2, w, h:H}); return;
+        }
+        if(w <= el.width+2){
+          const y = neg ? el.y+9 : el.y-8;
+          put(t, el.x-w/2, y); boxes.push({x:el.x-w/2, y:y-H/2, w, h:H});
+        } else {
+          ctx.save(); ctx.translate(el.x, neg ? el.y+4 : el.y-4); ctx.rotate(-Math.PI/2);
+          ctx.textAlign = neg ? 'right' : 'left'; ctx.lineWidth=3; ctx.strokeStyle=opt.halo; ctx.strokeText(t,0,0); ctx.fillStyle=opt.ink; ctx.fillText(t,0,0);
+          ctx.restore();
+          boxes.push({x:el.x-HB/2, y: neg ? el.y+4 : el.y-4-w, w:HB, h:w});
+        }
+      });
+    });
+    ctx.font = '500 10.5px "IBM Plex Mono", ui-monospace, Menlo, monospace';
+    // lines: last value only
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta = chart.getDatasetMeta(di);
+      if(!chart.isDatasetVisible(di) || ds._ref || meta.type!=='line') return;
+      const d = ds.data; let li=-1, mx=-1, mn=-1;
+      d.forEach((v,i)=>{ if(v==null) return; li=i; if(mx<0||v>d[mx]) mx=i; if(mn<0||v<d[mn]) mn=i; });
+      if(li<0) return;
+      const items = [{i:li,k:'last'}];
+      items.forEach(it=>{
+        const el = meta.data[it.i]; if(!el) return;
+        let t = nf(d[it.i],dec);
+        if(it.k==='last' && it.i<lastLab) t += ' ('+chart.data.labels[it.i]+')';
+        if(it.k==='max') t = '▲'+t; if(it.k==='min') t = '▼'+t;
+        const w = ctx.measureText(t).width;
+        let bx, base;
+        if(it.k==='last'){ bx = el.x+7; base = el.y; if(bx+w > right) bx = el.x-7-w; }
+        else { bx = el.x-w/2; base = it.k==='max' ? el.y-11 : el.y+12; bx = Math.max(ca.left, Math.min(bx, right-w)); }
+        const offs = it.k==='max' ? [0,-13,26,-26,39] : it.k==='min' ? [0,13,-26,26,-39] : [0,-13,13,-26,26,-39,39];
+        let y = base;
+        for(const o of offs){ const yy = Math.max(top+H/2, base+o); const r={x:bx-1,y:yy-H/2,w:w+2,h:H}; if(!hit(r)){ y=yy; break; } y=yy; }
+        ctx.fillStyle = ds.borderColor; ctx.strokeStyle = opt.halo; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(el.x, el.y, 3.2, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        put(t, bx, y); boxes.push({x:bx-1, y:y-H/2, w:w+2, h:H});
+      });
+    });
+    ctx.restore();
+  }
+};
+
+
+function makeChart(canvas, ch){
+  if(ch.horizontal) return makeHBar(canvas, ch);
+  const ink = cst('--ink'), ink2 = cst('--ink-2'), muted = cst('--muted'), rule = cst('--rule'), rs = cst('--rule-strong'), surf = cst('--surface');
+  const baseType = ch.type;
+  // trim the axis to the last period that has any data, so the x-axis ends at the latest release
+  let end = -1; ch.S.forEach(s=>{ if(!s.ref){ const k = lastIdx(s.d); if(k>end) end=k; } });
+  const L = ch.L.slice(0, end+1);
+  const hasLine = ch.S.some(s=>!s.ref && (s.kind||baseType)==='line');
+  const ds = ch.S.map(s => {
+    const col = cst(s.col);
+    const kind = s.kind || baseType;
+    const o = {label:s.n, data:s.d.slice(0,end+1), type:kind, borderColor:col, backgroundColor:col, _ref:!!s.ref};
+    if(kind==='bar'){
+      Object.assign(o,{borderRadius:3, borderSkipped:false, borderWidth:0, maxBarThickness:34, categoryPercentage:.72, barPercentage:.9, order:2});
+    } else {
+      Object.assign(o,{borderWidth:s.ref?1.2:2, pointRadius:ch.points&&!s.ref?3.5:0, pointHoverRadius:s.ref?0:4.5, pointBackgroundColor:col, pointBorderColor:surf, pointBorderWidth:1.5,
+        tension:0, stepped:s.step?'before':false, spanGaps:false, borderDash:s.ref?[3,4]:(s.dash||[]), fill:false, order:1});
+    }
+    return o;
+  });
+  const n = L.length;
+  const everyK = (chart) => { const w = (chart.chartArea && chart.chartArea.width) || chart.width; const maxT = Math.max(3, Math.floor(w/58)); return Math.ceil(n/maxT); };
+  return new Chart(canvas, {
+    type: baseType,
+    data:{labels:L, datasets:ds},
+    plugins:[VL],
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:false,
+      interaction:{mode:'index', intersect:false},
+      layout:{padding:{top:10, right: hasLine ? (ch.dec>=3 ? 60 : 50) : 8}},
+      plugins:{
+        vlabels:{dec:ch.dec, ink:ink, halo:surf},
+        legend:{display:ch.S.filter(s=>!s.ref).length>1, position:'top', align:'start',
+          labels:{color:ink2, boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:'rectRounded', padding:12, font:{family:cst('--sans').split(',')[0].replace(/"/g,''), size:12},
+            filter:i=>!i.text.startsWith('_'), sort:(a,b)=>a.datasetIndex-b.datasetIndex}},
+        tooltip:{itemSort:(a,b)=>a.datasetIndex-b.datasetIndex, backgroundColor:cst('--ink'), titleColor:cst('--bg'), bodyColor:cst('--bg'), padding:10, cornerRadius:6, boxPadding:4,
+          titleFont:{family:'IBM Plex Mono', weight:'500'}, bodyFont:{family:'IBM Plex Sans KR', size:12},
+          filter:i=>!i.dataset._ref && i.raw!=null,
+          callbacks:{
+            label:i=>` ${i.dataset.label}: ${nf(i.raw,ch.dec)} ${ch.u.split(' ')[0]}`,
+            footer: ch.balance ? (items)=>{ const a=items.find(x=>x.datasetIndex===0), b=items.find(x=>x.datasetIndex===1); return a&&b?`수지: ${nf(a.raw-b.raw,ch.dec)} 십억 달러`:''; } : undefined
+          }}
+      },
+      scales:{
+        x:{grid:{display:false}, border:{color:rs},
+           ticks:{maxRotation:0, autoSkip:false,
+             color:c=> c.index===n-1 ? ink : muted,
+             font:c=>({family:'IBM Plex Mono', size:11, weight: c.index===n-1 ? '600' : '400'}),
+             callback:function(v, idx){ const k = everyK(this.chart); return (n-1-idx)%k===0 ? this.getLabelForValue(v) : ''; }}},
+        y:{beginAtZero: ch.zeroBase!==false && baseType==='bar', grace: baseType==='bar' ? '24%' : '10%', border:{display:false},
+           grid:{color:ctx=> ctx.tick && ctx.tick.value===0 ? rs : rule, lineWidth:1},
+           ticks:{color:muted, maxTicksLimit:6, font:{family:'IBM Plex Mono', size:11}, callback:(v,i,tk)=>{ const st = tk.length>1 ? Math.abs(tk[1].value-tk[0].value) : 1; return nf(v, st<0.1?2:st<1?1:0); }}}
+      }
+    }
+  });
+}
+
+
+boot();
+</script>
+<script id="ops" type="application/json">__OPS__</script>
+</body></html>

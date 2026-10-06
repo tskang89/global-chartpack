@@ -1,0 +1,69 @@
+name: 글로벌 차트팩 갱신
+
+on:
+  schedule:
+    # 평일 05:15 UTC. 시장 자료라 날마다 움직인다.
+    #
+    # 주말은 뺀다 — 거래가 없어 바뀔 것이 없다. 다른 쪽과 10분씩 띄워
+    # 되커밋이 겹치지 않게 한다(차트팩 05:00, 전망 05:10, 여기 05:15).
+    #
+    # **이것은 예비 장치다.** GitHub 예약은 몇 시간씩 밀린다. 정시 갱신은
+    # cron-job.org 가 현지 07:15 에 workflow_dispatch 를 찔러서 한다.
+    - cron: "15 5 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      check_only:
+        description: "쓰지 않고 만들어만 본다"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: global
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install --quiet -r requirements.txt
+
+      - name: 지표 수집
+        env:
+          ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}
+        run: python build/make.py ${{ inputs.check_only && '--check' || '' }}
+
+      - name: 되커밋
+        if: ${{ !inputs.check_only }}
+        run: |
+          git config user.name  "global-bot"
+          git config user.email "global-bot@users.noreply.github.com"
+          git add index.html
+          if git diff --staged --quiet; then
+            echo "달라진 수치가 없다 — 커밋 생략"
+            exit 0
+          fi
+          git commit -m "글로벌 지표 갱신 $(TZ=Europe/Berlin date +%Y-%m-%d)"
+          for i in 1 2 3; do
+            if git push; then
+              echo "되커밋 완료 (시도 $i)"
+              exit 0
+            fi
+            echo "push 거부됨 — 원격을 받아 얹고 재시도 ($i/3)"
+            git pull --rebase --autostash origin main || exit 1
+            sleep 3
+          done
+          echo "::error::되커밋 실패"
+          exit 1
