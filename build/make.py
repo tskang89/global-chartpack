@@ -195,8 +195,7 @@ def last_of(data: dict, key: str) -> tuple[str | None, float | None]:
 
 
 NOTE = """<b>무엇을 모았나</b> 나라에 묶이지 않는 지표만 싣습니다. 나라별
-거시지표는 <a href="https://tskang89.github.io/euro-chartpack/">주요국 경제
-차트팩</a>이 맡습니다.
+거시지표는 주요국 경제 차트팩이 맡습니다.
 <br><br>
 <b>축이 둘입니다.</b> 시장 자료는 날마다 움직이지만 몇몇은 월별로만 나옵니다 —
 두바이유(한국은행 ECOS), FAO 지수, 유리보(ECB 가 월평균만 공표)입니다. 월별
