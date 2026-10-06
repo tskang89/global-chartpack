@@ -26,6 +26,39 @@ TEMPLATE = ROOT / "template.html"
 OUTPUT = ROOT / "index.html"
 
 TROUBLE: list[str] = []
+DATA_RE = __import__("re").compile(r"const DATA = (\{.*?\});\n", __import__("re").S)
+
+
+def previous() -> dict:
+    """지금 index.html 에 박혀 있는 자료. 받지 못한 계열을 여기서 물려 온다."""
+    if not OUTPUT.exists():
+        return {}
+    m = DATA_RE.search(OUTPUT.read_text(encoding="utf-8"))
+    if not m:
+        return {}
+    try:
+        return json.loads(m.group(1))
+    except ValueError:
+        return {}
+
+
+def carried(prev: dict, key: str, axis_name: str,
+            axis: list[str]) -> dict[str, float]:
+    """이전 판의 계열을 **시점으로** 다시 앉힌다.
+
+    받지 못했다고 그림을 통째로 지우면 안 된다. 2년치 선이 있는데 하루
+    못 받았다고 없애는 꼴이다 — 차트팩에서 ifo 가 그렇게 사라진 적이 있고
+    (2026-10-05) 값이 틀리는 것보다 없어지는 것이 눈에 안 띄어 더 나쁘다.
+
+    자리(인덱스)가 아니라 날짜 이름으로 맞춘다. 길이만 보고 옮기면 축이
+    하루 밀린 날 어제 값이 오늘 자리에 앉는다.
+    """
+    old_axis = (prev.get("meta") or {}).get(axis_name) or []
+    old = prev.get(key)
+    if not old or len(old) != len(old_axis):
+        return {}
+    at = dict(zip(old_axis, old))
+    return {k: at[k] for k in axis if at.get(k) is not None}
 
 
 def log(msg: str = "") -> None:
@@ -76,7 +109,7 @@ def check(key: str, vals: list[float | None]) -> None:
             f"(예: {bad[0]})")
 
 
-def collect(today: datetime.date) -> tuple[dict, dict, list[str]]:
+def collect(today: datetime.date, prev: dict) -> tuple[dict, dict, list[str]]:
     since_d = (today - datetime.timedelta(days=S.DAYS_BACK)).isoformat()
     months = month_axis(today, S.MONTHS_BACK)
     raw_daily: dict[str, dict[str, float]] = {}
@@ -89,7 +122,8 @@ def collect(today: datetime.date) -> tuple[dict, dict, list[str]]:
             log(f"  일별 {key:7} Yahoo {sym:9} {len(raw_daily[key]):4}점")
         except F.GrabError as exc:
             warn.append(f"{name} 을 받지 못했다")
-            log(f"  [실패] {name} — {exc}")
+            log(f"  [실패] {name} — {exc} (이전 값을 물려 쓴다)")
+            raw_daily[key] = {}
 
     for key, name, fn in ((S.BUND10[0], S.BUND10[1], lambda: F.bund10()),
                           (S.JGB10[0], S.JGB10[1], lambda: F.jgb10(since_d)),
@@ -99,7 +133,8 @@ def collect(today: datetime.date) -> tuple[dict, dict, list[str]]:
             log(f"  일별 {key:7} {name:11} {len(raw_daily[key]):4}점")
         except F.GrabError as exc:
             warn.append(f"{name} 을 받지 못했다")
-            log(f"  [실패] {name} — {exc}")
+            log(f"  [실패] {name} — {exc} (이전 값을 물려 쓴다)")
+            raw_daily[key] = {}
 
     for key, (name, skey) in S.EURIBOR.items():
         try:
@@ -107,7 +142,8 @@ def collect(today: datetime.date) -> tuple[dict, dict, list[str]]:
             log(f"  월별 {key:7} ECB 유리보  {len(raw_monthly[key]):4}점")
         except F.GrabError as exc:
             warn.append(f"{name} 을 받지 못했다")
-            log(f"  [실패] {name} — {exc}")
+            log(f"  [실패] {name} — {exc} (이전 값을 물려 쓴다)")
+            raw_monthly[key] = {}
 
     key, name, table, item, _u = S.DUBAI
     try:
@@ -117,7 +153,8 @@ def collect(today: datetime.date) -> tuple[dict, dict, list[str]]:
         log(f"  월별 {key:7} ECOS 두바이유 {len(raw_monthly[key]):4}점")
     except F.GrabError as exc:
         warn.append("두바이유를 받지 못했다")
-        log(f"  [실패] 두바이유 — {exc}")
+        log(f"  [실패] 두바이유 — {exc} (이전 값을 물려 쓴다)")
+        raw_monthly[key] = {}
 
     try:
         got = F.fao()
@@ -127,17 +164,23 @@ def collect(today: datetime.date) -> tuple[dict, dict, list[str]]:
                 log(f"  월별 {key:9} FAO {col:18} {len(got[col]):4}점")
     except F.GrabError as exc:
         warn.append("FAO 지수를 받지 못했다")
-        log(f"  [실패] FAO — {exc}")
+        log(f"  [실패] FAO — {exc} (이전 값을 물려 쓴다)")
+        for key in S.FAO_COLS:
+            raw_monthly[key] = {}
 
     days = day_axis(list(raw_daily.values()), since_d)
     data = {"meta": {"days": days, "months": months,
                      "asOf": today.isoformat()}}
-    for key, rows in raw_daily.items():
-        data[key] = align(rows, days)
-        check(key, data[key])
-    for key, rows in raw_monthly.items():
-        data[key] = align(rows, months)
-        check(key, data[key])
+    for axis_name, axis, bag in (("days", days, raw_daily),
+                                 ("months", months, raw_monthly)):
+        for key, rows in bag.items():
+            if not rows:
+                rows = carried(prev, key, axis_name, axis)
+                if rows:
+                    log(f"    └ {key} — 이전 판에서 {len(rows)}점을 "
+                        f"시점에 맞춰 물려 썼다.")
+            data[key] = align(rows, axis)
+            check(key, data[key])
     return data, {"days": len(days), "months": len(months)}, warn
 
 
@@ -175,7 +218,7 @@ FAO 지수는 국제연합 식량농업기구입니다.
 
 def build(today: datetime.date) -> str:
     log(f"글로벌 지표 수집 — {today}")
-    data, size, warn = collect(today)
+    data, size, warn = collect(today, previous())
     if len(data) <= 1:
         raise RuntimeError("하나도 받지 못했다 — 쪽을 쓰지 않는다")
 
