@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""글로벌 지표를 출처별로 받아 온다. 모두 {날짜: 값} 또는 {YYYY-MM: 값}.
+"""원자재 가격을 출처별로 받아 온다. 모두 {날짜: 값} 또는 {YYYY-MM: 값}.
 
 출처가 갈린 까닭을 여기 적어 둔다. 한 군데서 다 받을 수 있었다면 그렇게 했다.
 
@@ -94,84 +94,18 @@ BBK = ("https://api.statistiken.bundesbank.de/rest/data/BBSIS/"
        "D.I.ZST.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A")
 
 
-def bund10(days: int = 760) -> dict[str, float]:
-    start = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
-    text = _get(BBK, params={"startPeriod": start},
-                headers={"Accept": "text/csv"}).text
-    rows = list(csv.reader(io.StringIO(text.lstrip("﻿")), delimiter=";"))
-    head = [h.lstrip("﻿") for h in rows[0]]
-    ti, vi = head.index("TIME_PERIOD"), head.index("OBS_VALUE")
-    out = {r[ti]: float(r[vi]) for r in rows[1:]
-           if len(r) > vi and r[vi] not in (".", "")}
-    if not out:
-        raise GrabError("분데스방크: 값이 없다")
-    return out
-
-
 # --------------------------------------------------------- 일본 재무성
 # 전 기간 파일(1.2MB). 머리글이 `Date,1Y,2Y,…` 이고 값은 '%' 다.
 MOF = ("https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/"
        "historical/jgbcme_all.csv")
 
 
-def jgb10(since: str) -> dict[str, float]:
-    text = _get(MOF).text
-    rows = list(csv.reader(io.StringIO(text)))
-    head = None
-    out = {}
-    for r in rows:
-        if not r:
-            continue
-        if head is None:
-            if r[0].strip() == "Date" and "10Y" in [c.strip() for c in r]:
-                head = [c.strip() for c in r]
-            continue
-        try:
-            day = datetime.datetime.strptime(r[0].strip(), "%Y/%m/%d").date()
-        except ValueError:
-            continue
-        if day.isoformat() < since:
-            continue
-        v = r[head.index("10Y")].strip()
-        if v in ("", "-"):
-            continue
-        try:
-            out[day.isoformat()] = float(v)
-        except ValueError:
-            continue
-    if not out:
-        raise GrabError("일본 재무성: 10년물 값을 읽지 못했다")
-    return out
-
-
 # ------------------------------------------------------------ 뉴욕 연준
 NYFED = "https://markets.newyorkfed.org/api/rates/secured/sofr/last/{n}.json"
 
 
-def sofr(n: int = 520) -> dict[str, float]:
-    doc = _get(NYFED.format(n=n)).json()
-    out = {r["effectiveDate"]: float(r["percentRate"])
-           for r in doc.get("refRates", []) if r.get("percentRate") is not None}
-    if not out:
-        raise GrabError("뉴욕 연준: SOFR 값이 없다")
-    return out
-
-
 # ------------------------------------------------------------------ ECB
 ECB = "https://data-api.ecb.europa.eu/service/data/{flow}/{key}"
-
-
-def ecb(flow: str, key: str, since: str) -> dict[str, float]:
-    text = _get(ECB.format(flow=flow, key=key),
-                params={"startPeriod": since, "format": "csvdata"},
-                headers={"Accept": "text/csv"}).text
-    rows = list(csv.reader(io.StringIO(text)))
-    if len(rows) < 2:
-        raise GrabError(f"ECB {key}: 값이 없다")
-    head = rows[0]
-    ti, vi = head.index("TIME_PERIOD"), head.index("OBS_VALUE")
-    return {r[ti]: float(r[vi]) for r in rows[1:]
-            if len(r) > vi and r[vi] not in ("", ".")}
 
 
 # ----------------------------------------------------------------- ECOS

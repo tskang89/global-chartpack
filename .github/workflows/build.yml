@@ -1,4 +1,4 @@
-name: 글로벌 차트팩 갱신
+name: 원자재 차트팩 갱신
 
 on:
   schedule:
@@ -55,7 +55,7 @@ jobs:
             echo "달라진 수치가 없다 — 커밋 생략"
             exit 0
           fi
-          git commit -m "글로벌 지표 갱신 $(TZ=Europe/Berlin date +%Y-%m-%d)"
+          git commit -m "원자재 가격 갱신 $(TZ=Europe/Berlin date +%Y-%m-%d)"
           for i in 1 2 3; do
             if git push; then
               echo "되커밋 완료 (시도 $i)"

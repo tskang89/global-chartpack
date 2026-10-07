@@ -2,7 +2,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta charset="utf8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>글로벌 차트팩</title>
+<title>원자재 가격 차트팩</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
@@ -98,8 +98,8 @@ footer.src b{color:var(--ink);font-weight:600}
 <div class="wrap">
 <header class="top">
 <p class="eyebrow">Bank of Korea Frankfurt</p>
-<h1>글로벌 차트팩</h1>
-<p class="stamp">__STAMP__ · 원자재 · 금리 · 환율·리스크</p>
+<h1>원자재 가격 차트팩</h1>
+<p class="stamp">__STAMP__ · 에너지 · 금속 · 곡물</p>
 </header>
 __WARN__
 <div id="main"></div>
@@ -134,51 +134,36 @@ const line = (n, k, col) => ({n, d:D(k), col});
 function groups(){
   const g = [];
 
-  const comm = [];
-  if(has('gold'))   comm.push(ch('금','달러/온스',LD,1,[line('금','gold','--s1')],
-    '뉴욕상품거래소 금 선물 종가.'));
-  if(has('silver')) comm.push(ch('은','달러/온스',LD,2,[line('은','silver','--s2')],
-    '뉴욕상품거래소 은 선물 종가.'));
-  if(has('brent')||has('wti')) comm.push(ch('원유 — 브렌트·WTI','달러/배럴',LD,2,
+  /* 금리·환율을 2026-10-07 에 뺐다. 원자재만 남으니 묶음이 하나뿐이어서
+     '1. 원자재' 라는 머리글이 무의미해진다. 그래서 에너지와 금속·곡물로
+     갈랐다 — 보는 사람이 찾는 단위가 그 둘이다. */
+
+  const en = [];
+  if(has('brent')||has('wti')) en.push(ch('원유 — 브렌트·WTI','달러/배럴',LD,2,
     [line('브렌트','brent','--s1'),line('WTI','wti','--s2')],
     '두 유종 모두 일별 선물 종가다. 두바이는 일별 공개 계열이 없어 아래에 월별로 따로 싣는다.'));
-  if(has('dubai'))  comm.push(ch('원유 — 두바이','달러/배럴 · 월별',LM,2,
+  if(has('dubai'))  en.push(ch('원유 — 두바이','달러/배럴 · 월별',LM,2,
     [line('두바이','dubai','--s3')],
-    '한국은행 ECOS 국제상품가격. 월평균이라 위 브렌트·WTI(일별)와 같은 날로 견주면 안 된다.'));
-  if(has('ttf'))    comm.push(ch('천연가스 — 유럽 TTF','유로/MWh',LD,2,
+    '한국은행 ECOS 국제상품가격. 월평균이라 위 브렌트·WTI(일별)와 같은 날로 견주면 안 된다. 월평균을 내는 데 시간이 걸려 한 달쯤 늦게 들어온다.'));
+  if(has('ttf'))    en.push(ch('천연가스 — 유럽 TTF','유로/MWh',LD,2,
     [line('TTF','ttf','--s1')],'네덜란드 TTF 선물 종가. 유로지역 가스 가격의 기준이다.'));
-  if(has('hh'))     comm.push(ch('천연가스 — 미국 헨리허브','달러/MMBtu',LD,2,
+  if(has('hh'))     en.push(ch('천연가스 — 미국 헨리허브','달러/MMBtu',LD,2,
     [line('헨리허브','hh','--s2')],'단위가 TTF 와 달라 한 그림에 얹지 않는다.'));
-  if(has('copper')) comm.push(ch('구리','달러/파운드',LD,3,
-    [line('구리','copper','--s3')],'뉴욕상품거래소 구리 선물 종가.'));
-  if(has('gsci'))   comm.push(ch('원자재 종합 — S&P GSCI','지수',LD,1,
-    [line('GSCI','gsci','--s1')],'에너지 비중이 큰 생산량 가중 지수다.'));
-  if(has('fao'))    comm.push(ch('곡물·식량 — FAO 지수','2014–2016=100 · 월별',LM,1,
+  if(en.length) g.push({n:'1', t:'에너지', sub:'일별 · 두바이는 월별', charts:en});
+
+  const mt = [];
+  if(has('gold'))   mt.push(ch('금','달러/온스',LD,1,[line('금','gold','--s1')],
+    '뉴욕상품거래소 금 선물 종가.'));
+  if(has('silver')) mt.push(ch('은','달러/온스',LD,2,[line('은','silver','--s2')],
+    '뉴욕상품거래소 은 선물 종가.'));
+  if(has('copper')) mt.push(ch('구리','달러/파운드',LD,3,
+    [line('구리','copper','--s3')],'뉴욕상품거래소 구리 선물 종가. 경기와 함께 움직여 '닥터 코퍼' 라고 부른다.'));
+  if(has('fao'))    mt.push(ch('곡물·식량 — FAO 지수','2014–2016=100 · 월별',LM,1,
     [line('식량가격지수','fao','--s1'),line('곡물','faoCereal','--s2')],
     'FAO 가 달마다 내는 지수. S&P GSCI 농산물지수는 공개 창구에 과거치가 하루치뿐이라 선을 그릴 수 없어 이것으로 갈음했다.'));
-  if(comm.length) g.push({n:'1', t:'원자재', sub:'일별 · 일부 월별', charts:comm});
-
-  const rate = [];
-  const long10 = [];
-  if(has('ust10')) long10.push(line('미국','ust10','--s1'));
-  if(has('bund10')) long10.push(line('독일','bund10','--s2'));
-  if(has('jgb10')) long10.push(line('일본','jgb10','--s3'));
-  if(long10.length) rate.push(ch('장기금리 — 10년물 국채','%',LD,2,long10,
-    '미국은 Yahoo(^TNX), 독일은 분데스방크 Svensson 수익률곡선, 일본은 재무성 공표치다. 출처가 달라 같은 날 값이 조금씩 다른 기준일 수 있다.'));
-  if(has('sofr')) rate.push(ch('단기금리 — SOFR','%',LD,2,[line('SOFR','sofr','--s1')],
-    '뉴욕 연준이 날마다 내는 담보부 익일물 금리. 달러 자금시장의 기준금리다.'));
-  if(has('eur3m')) rate.push(ch('단기금리 — 유리보','% · 월별',LM,2,
-    [line('1개월','eur1m','--s4'),line('3개월','eur3m','--s1'),
-     line('6개월','eur6m','--s2'),line('12개월','eur12m','--s3')],
-    '유로지역 은행 간 무담보 조달의 기준금리. 유로화 대출·조달 계약은 대개 3개월물을 쓴다. ECB 가 월평균만 공표해 월별이다(산출은 EMMI).'));
-  if(rate.length) g.push({n:'2', t:'금리', sub:'일별 · 유리보는 월별', charts:rate});
-
-  const risk = [];
-  if(has('dxy')) risk.push(ch('달러인덱스','지수',LD,2,[line('DXY','dxy','--s1')],
-    '주요 6개 통화 대비 달러 가치. 유로 비중이 가장 크다.'));
-  if(has('vix')) risk.push(ch('VIX','포인트',LD,2,[line('VIX','vix','--hot')],
-    'S&P 500 옵션에 반영된 향후 30일 변동성. 20을 넘으면 불안이 커진 것으로 본다.'));
-  if(risk.length) g.push({n:'3', t:'환율 · 리스크', sub:'일별', charts:risk});
+  if(has('gsci'))   mt.push(ch('원자재 종합 — S&P GSCI','지수',LD,1,
+    [line('GSCI','gsci','--s1')],'에너지 비중이 큰 생산량 가중 지수다.'));
+  if(mt.length) g.push({n:'2', t:'금속 · 곡물 · 종합', sub:'일별 · FAO 는 월별', charts:mt});
 
   return g;
 }
