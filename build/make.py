@@ -22,7 +22,8 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
-import fetchers as F                                           # noqa: E402
+import fetchers as F
+import jscheck                                         # noqa: E402                                           # noqa: E402
 import sources as S                                            # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -241,6 +242,9 @@ def main() -> int:
     today = (datetime.date.fromisoformat(args.date) if args.date
              else datetime.date.today())
     page = build(today)
+    # 쪽을 쓰기 전에 자바스크립트가 성한지 본다. 깨졌으면 여기서 멈춘다 —
+    # 깨진 쪽을 올리느니 어제 쪽이 그대로 떠 있는 편이 낫다(2026-10-07).
+    jscheck.must_be_sound(page, log)
     if args.check:
         log("--check: 파일을 쓰지 않았다.")
         return 0
