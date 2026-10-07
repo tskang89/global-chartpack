@@ -129,17 +129,6 @@ def collect(today: datetime.date, prev: dict) -> tuple[dict, dict, list[str]]:
             log(f"  [실패] {name} — {exc} (이전 값을 물려 쓴다)")
             raw_daily[key] = {}
 
-    key, name, table, item, _u = S.DUBAI
-    try:
-        raw_monthly[key] = F.ecos(table, item,
-                                  months[0].replace("-", ""),
-                                  months[-1].replace("-", ""))
-        log(f"  월별 {key:7} ECOS 두바이유 {len(raw_monthly[key]):4}점")
-    except F.GrabError as exc:
-        warn.append("두바이유를 받지 못했다")
-        log(f"  [실패] 두바이유 — {exc} (이전 값을 물려 쓴다)")
-        raw_monthly[key] = {}
-
     try:
         got = F.fao()
         for key, (name, col) in S.FAO_COLS.items():
@@ -182,17 +171,17 @@ NOTE = """<b>무엇을 모았나</b> 원자재 가격만 싣습니다. 나라별
 금리·환율은 주요국 경제 차트팩이 맡습니다 — 두 쪽이 겹치면 어느 쪽을 봐야
 할지 알 수 없게 됩니다.
 <br><br>
-<b>축이 둘입니다.</b> 선물 가격은 날마다 움직이지만 두바이유(한국은행 ECOS)와
-FAO 지수는 월별로만 나옵니다. 월별 값을 일별 축에 늘어놓으면 계단이 되어
-'한 달 내내 값이 같았다'로 읽히므로 따로 그립니다. 그림 제목 밑에 일별인지
-월별인지 적었습니다.
+<b>축이 둘입니다.</b> 선물 가격은 날마다 움직이지만 FAO 지수는 달마다
+나옵니다. 월별 값을 일별 축에 늘어놓으면 계단이 되어 '한 달 내내 값이
+같았다'로 읽히므로 따로 그립니다. 그림 제목 밑에 일별인지 월별인지
+적었습니다.
 <br><br>
-<b>두바이유는 한 달쯤 늦습니다.</b> 한국은행 ECOS 국제상품가격이 월평균을
-내는 데 시간이 걸립니다(2026년 10월 7일 현재 8월치가 마지막). 브렌트·WTI 는
-일별이라 어제 값까지 있으므로, 두바이가 묵어 보이는 것은 고장이 아닙니다.
+<b>유종은 브렌트와 WTI 만 싣습니다.</b> 두바이유는 공개 일별 계열이 없어
+월평균으로만 구할 수 있고(한국은행 ECOS), 그마저 한 달쯤 늦게 들어와
+어제 값까지 있는 두 유종과 한 화면에서 견주기 어려웠습니다.
 <br><br>
-<b>자료</b> 선물·지수는 Yahoo Finance 종가, 두바이유는 한국은행 ECOS
-국제상품가격, FAO 지수는 국제연합 식량농업기구입니다.
+<b>자료</b> 선물·지수는 Yahoo Finance 종가, FAO 지수는 국제연합
+식량농업기구입니다.
 <br><br>
 <b>발틱운임지수(BDI)는 넣지 못했습니다.</b> 발틱거래소가 라이선스로 묶어 두어
 공개 계열이 없습니다. Yahoo 의 BDRY 는 건화물 운임 <b>선물 ETF</b> 라 지수가

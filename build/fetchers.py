@@ -3,13 +3,12 @@
 
 출처가 갈린 까닭을 여기 적어 둔다. 한 군데서 다 받을 수 있었다면 그렇게 했다.
 
-  Yahoo Finance   선물·지수 대부분. 일별.
-  분데스방크       독일 10년물. Yahoo 에 쓸 만한 분트 금리가 없다.
-  일본 재무성      일본 10년물. 같은 까닭.
-  뉴욕 연준        SOFR. 공식 창구가 API 로 열려 있다.
-  ECB             유리보. **월평균만 있다** — 일별 계열(D.…)은 404 다.
-  한국은행 ECOS    두바이유. Yahoo 에 두바이 선물이 없다. 월별.
+  Yahoo Finance   선물·지수. 일별.
   FAO             식량가격지수·곡물지수. 월별.
+
+2026-10-07 에 금리·환율과 두바이유를 뺐다(소장님 지시). 그래서 분데스방크·
+일본 재무성·뉴욕 연준·ECB·한국은행 ECOS 를 받아 오던 코드가 함께 없어졌다.
+되살리려면 git 이력을 본다.
 
 **BDI 는 넣지 못했다.** 발틱거래소가 라이선스로 묶어 두어 무료 계열이 없다
 (발틱거래소·한국해양진흥공사·KMI 모두 막힘, 2026-10-06 확인). Yahoo 의
@@ -102,39 +101,6 @@ MOF = ("https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/"
 
 # ------------------------------------------------------------ 뉴욕 연준
 NYFED = "https://markets.newyorkfed.org/api/rates/secured/sofr/last/{n}.json"
-
-
-# ------------------------------------------------------------------ ECB
-ECB = "https://data-api.ecb.europa.eu/service/data/{flow}/{key}"
-
-
-# ----------------------------------------------------------------- ECOS
-ECOS = ("https://ecos.bok.or.kr/api/StatisticSearch/{key}/json/kr/1/{rows}/"
-        "{table}/{cycle}/{start}/{end}/{item}")
-
-
-def ecos(table: str, item: str, start: str, end: str,
-         cycle: str = "M") -> dict[str, float]:
-    key = os.environ.get("ECOS_API_KEY")
-    if not key:
-        raise GrabError("ECOS_API_KEY 가 없다")
-    url = ECOS.format(key=key, rows=700, table=table, cycle=cycle,
-                      start=start, end=end, item=item)
-    for attempt in range(RETRIES):
-        doc = _get(url).json()
-        rows = (doc.get("StatisticSearch") or {}).get("row")
-        if rows:
-            return {f"{r['TIME'][:4]}-{r['TIME'][4:6]}": float(r["DATA_VALUE"])
-                    for r in rows if r.get("DATA_VALUE") not in (None, "", "-")}
-        why = doc.get("RESULT") or {}
-        # INFO-200 은 '자료 없음'인데 호출이 몰렸을 때도 같은 것이 온다.
-        # 차트팩에서 같은 일로 10년물이 통째로 빠진 적이 있다(2026-10-05).
-        if why.get("CODE") == "INFO-200" and attempt + 1 < RETRIES:
-            time.sleep(3 * (attempt + 1))
-            continue
-        raise GrabError(f"ECOS {table}/{item}: "
-                        f"{why.get('MESSAGE', '빈 응답')}")
-    raise GrabError(f"ECOS {table}/{item}: 거듭 물어도 비었다")
 
 
 # ------------------------------------------------------------------ FAO

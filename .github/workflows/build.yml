@@ -41,8 +41,6 @@ jobs:
         run: pip install --quiet -r requirements.txt
 
       - name: 지표 수집
-        env:
-          ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}
         run: python build/make.py ${{ inputs.check_only && '--check' || '' }}
 
       - name: 되커밋

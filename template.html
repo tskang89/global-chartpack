@@ -141,15 +141,12 @@ function groups(){
   const en = [];
   if(has('brent')||has('wti')) en.push(ch('원유 — 브렌트·WTI','달러/배럴',LD,2,
     [line('브렌트','brent','--s1'),line('WTI','wti','--s2')],
-    '두 유종 모두 일별 선물 종가다. 두바이는 일별 공개 계열이 없어 아래에 월별로 따로 싣는다.'));
-  if(has('dubai'))  en.push(ch('원유 — 두바이','달러/배럴 · 월별',LM,2,
-    [line('두바이','dubai','--s3')],
-    '한국은행 ECOS 국제상품가격. 월평균이라 위 브렌트·WTI(일별)와 같은 날로 견주면 안 된다. 월평균을 내는 데 시간이 걸려 한 달쯤 늦게 들어온다.'));
+    '두 유종 모두 일별 선물 종가다. 두바이유는 공개 일별 계열이 없고 월평균이 한 달쯤 늦게 들어와 싣지 않는다.'));
   if(has('ttf'))    en.push(ch('천연가스 — 유럽 TTF','유로/MWh',LD,2,
     [line('TTF','ttf','--s1')],'네덜란드 TTF 선물 종가. 유로지역 가스 가격의 기준이다.'));
   if(has('hh'))     en.push(ch('천연가스 — 미국 헨리허브','달러/MMBtu',LD,2,
     [line('헨리허브','hh','--s2')],'단위가 TTF 와 달라 한 그림에 얹지 않는다.'));
-  if(en.length) g.push({n:'1', t:'에너지', sub:'일별 · 두바이는 월별', charts:en});
+  if(en.length) g.push({n:'1', t:'에너지', sub:'일별', charts:en});
 
   const mt = [];
   if(has('gold'))   mt.push(ch('금','달러/온스',LD,1,[line('금','gold','--s1')],
